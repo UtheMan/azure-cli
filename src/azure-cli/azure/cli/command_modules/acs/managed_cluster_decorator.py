@@ -8711,7 +8711,7 @@ class AKSManagedClusterUpdateDecorator(BaseAKSManagedClusterDecorator):
         self._ensure_mc(mc)
 
         # Check if the parameter was explicitly provided
-        if "custom_ca_trust_certificates" in self.context.raw_param:
+        if self.context.raw_param.get("custom_ca_trust_certificates") is not None:
             ca_certs = self.context.get_custom_ca_trust_certificates()
             if mc.security_profile is None:
                 mc.security_profile = self.models.ManagedClusterSecurityProfile()  # pylint: disable=no-member
