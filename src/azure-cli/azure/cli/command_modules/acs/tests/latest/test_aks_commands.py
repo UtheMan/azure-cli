@@ -12817,7 +12817,6 @@ class AzureKubernetesServiceScenarioTest(ScenarioTest):
         create_cmd = 'aks create --resource-group={resource_group} --name={name} ' \
                      '--nodepool-name {node_pool_name} -c 1 ' \
                      '--ssh-key-value={ssh_key_value} ' \
-                     '--aks-custom-headers=AKSHTTPCustomFeatures=Microsoft.ContainerService/CustomCATrustPreview ' \
                      '--custom-ca-trust-certificates={custom_ca_trust_certificates}'
         self.cmd(create_cmd, checks=[
             self.check('provisioningState', 'Succeeded'),
@@ -12826,15 +12825,13 @@ class AzureKubernetesServiceScenarioTest(ScenarioTest):
 
         # 2. Update cluster to remove certificates by providing empty certificate file
         update_cmd = 'aks update --resource-group={resource_group} --name={name} ' \
-                     '--aks-custom-headers=AKSHTTPCustomFeatures=Microsoft.ContainerService/CustomCATrustPreview ' \
-                     '--custom-ca-trust-certificates={empty_custom_ca_trust_certificates}'
-        self.cmd(update_cmd, checks=[
-            self.check('provisioningState', 'Succeeded'),
-            # After update with empty file, certificates should be removed 
-            self.check('length(securityProfile.customCaTrustCertificates)', 0),
-        ])
+                     '--custom-ca-trust-certificates={empty_custom_ca_trust_certificates} --no-wait'
+        self.cmd(update_cmd, checks=[self.is_empty()])
 
-        # 3. Verify the cluster still works and certificates are indeed removed
+        # Wait for the update to complete
+        self.cmd('aks wait -g {resource_group} -n {name} --updated', checks=[self.is_empty()])
+
+        # 3. Verify the cluster and certificates are indeed removed
         get_cmd = 'aks show --resource-group={resource_group} --name={name}'
         self.cmd(get_cmd, checks=[
             self.check('provisioningState', 'Succeeded'),
