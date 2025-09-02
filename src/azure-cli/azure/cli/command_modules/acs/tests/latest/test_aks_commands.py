@@ -12835,7 +12835,7 @@ class AzureKubernetesServiceScenarioTest(ScenarioTest):
         get_cmd = 'aks show --resource-group={resource_group} --name={name}'
         self.cmd(get_cmd, checks=[
             self.check('provisioningState', 'Succeeded'),
-            self.check('length(securityProfile.customCaTrustCertificates)', 0),
+            self.check('securityProfile.customCaTrustCertificates', None),
         ])
 
         # delete
